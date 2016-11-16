@@ -1,0 +1,34 @@
+body {
+	
+}
+
+table {
+	border: solid; 
+	border-color: black; 
+	border-width: 1px;
+}
+
+table tr {
+	border: solid; 
+	border-color: black; 
+	border-width: 1px;
+}
+
+table tr td {
+	border: solid; 
+	border-color: black; 
+	border-width: 1px;
+	width: 80px;
+	height: 80px;
+	font-size: 9pt;
+    font-family: monospace;
+	/*background-color: #F0F0F0;*/
+}
+
+/*td:focus {
+    color: #f00;  Цвет активной ссылки  
+   } */
+
+/*td:hover {
+	background-color: #5488AF;
+}*/

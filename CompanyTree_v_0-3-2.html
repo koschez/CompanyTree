@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" href="+css.css">
+	<link rel="stylesheet" type="text/css" href="">
+	<script src="httpDelete.js"></script>
+	
+</head>
+<body>
+	<script type="text/javascript">
+		var xhr = new XMLHttpRequest();
+		var apiUrl = 'https://api.mlab.com/api/1/databases/second_db/collections/companies';
+		var apiKey = 'apiKey=9i8roiNZI9pUK5ZvBG-X7cfQsR7meRsK'
+		var rootStoreOid = '582bdcffa71ff31074e073e4';
+		var countOfRoots;
+
+		window.onload = function() {
+			get_me();
+		};
+
+		function get_me() {
+			var url = apiUrl + '?' + apiKey;
+			xhr.open("GET", url, true);
+			xhr.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+			xhr.send();
+			xhr.onreadystatechange = function() {
+    		if(xhr.readyState == 4 && xhr.status == 200) {
+				responseJSONS = JSON.parse(xhr.responseText);
+
+				if (responseJSONS.length > 1) {
+					for (var i = 0; i < responseJSONS.length; i++) {
+						if (responseJSONS[i]._id.$oid != rootStoreOid) {
+						var newTr = document.createElement("li");
+						newTr.innerHTML = '<ul id="'+ responseJSONS[i].id +'">id: '+ responseJSONS[i].id + 
+										' ' + 'company: ' + responseJSONS[i].name + ' , cash: ' + responseJSONS[i].cash + '| ' +
+										'<button onclick = "create(this)">Add</button>' +
+										'<button onclick = "edit(this)">Edit</button>' +
+										'<button onclick = "deleteMe(this)">Del</button></ul>';
+						if (document.getElementById(responseJSONS[i].parent_id)) {
+						(document.getElementById(responseJSONS[i].parent_id)).appendChild(newTr); };
+    				} else {
+    					countOfRoots = responseJSONS[i].Roots.length;
+    				};
+
+    			};
+    			for (var i = 0; i<countOfRoots; i++) {
+    				var newTr = document.createElement("li");
+					newTr.id = 'id="root-'+ countOfRoots +'"'; 
+					newTr.innerHTML = 'id: ' + countOfRoots +
+								' ' + 'company: Root_Corp' + countOfRoots + ' , cash: 100' + '| ' +
+								'<button onclick = "create(this)">Add</button>' +
+								'<button onclick = "edit(this)">Edit</button>' +
+								'<button onclick = "deleteMe(this)">Del</button>';
+					document.getElementById('root').appendChild(newTr);
+    			};
+
+    			} else {
+					alert('There no items in database. Check console.');
+					console.log('Please check db by API URL: ' + url);
+    			};
+				};
+			};
+
+
+		};
+
+		function create(sender) {
+			var url = apiUrl + '?' + apiKey;
+			xhr.open("GET", url, true);
+			xhr.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+			xhr.send();
+			xhr.onreadystatechange = function() {
+    			if(xhr.readyState == 4 && xhr.status == 200) {
+					newJSONS = JSON.parse(xhr.responseText);
+					lastOfList = newJSONS.length;
+
+					let subject = [];
+					let a = document.getElementById(sender.parentNode.getAttribute('id'));
+					subject = (a.getAttribute('id')).split('-');
+					var parent;
+					if (subject.length > 1) {
+						thisTr_id = subject[1].slice(0, -1);
+						console.log('dsfnhbdshf');
+					} else {
+						parent = document.getElementById(sender.parentNode.getAttribute('id'));
+						thisTr_id = parent.getAttribute('id');
+					};
+			company = {'name': document.getElementById("name").value,
+					'cash': document.getElementById("cash").value};
+			var newTr = document.createElement("li");
+			newTr.innerHTML = '<ul id="'+ (parseInt(lastOfList+1)) +'">id: '+ (parseInt(lastOfList+1)) + 
+								' ' + 'company: ' + company.name + ' , cash: ' + company.cash + '| ' +
+								'<button onclick = "create(this)">Add</button>' +
+								'<button onclick = "edit(this)">Edit</button>' +
+								'<button onclick = "deleteMe(this)">Del</button></ul>';
+					var url = apiUrl + '?' + apiKey;
+					var params = "{name: '" + company.name +
+					"', cash: " + company.cash +
+					", id: " + (parseInt(lastOfList)) +
+					", parent_id:" + (parseInt(thisTr_id)) +
+					"}";
+				xhr.open("POST", url, true);
+				xhr.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+				xhr.send(params);
+					xhr.onreadystatechange = function() {
+    				if(xhr.readyState == 4 && xhr.status == 200)
+    					a.appendChild(newTr);
+					};
+				};
+			};
+		};
+
+		function edit(sender) {
+			let subject = [];
+			let a = document.getElementById(sender.parentNode.getAttribute('id'));
+			subject = (a.getAttribute('id')).split('-');
+			console.log(sender.parentNode);
+			if (subject.length > 1) {
+				thisTr_id = subject[1].slice(0, -1);
+			} else {
+				thisTr_id = document.getElementById(sender.parentNode.getAttribute('id')).getAttribute('id');
+			};
+			var thisTr_oid;
+			company = {'name': document.getElementById("name").value,
+					'cash': document.getElementById("cash").value};
+			text = sender.parentNode.innerHTML;
+			text1 = text.split('|');
+			text2 = text1[0].split(' ');
+				for (var i=0; i<responseJSONS.length; i++) {
+					if (thisTr_id == responseJSONS[i].id) {
+						thisTr_oid = responseJSONS[i]._id.$oid;
+					};
+				};
+			url = apiUrl + '/' + thisTr_oid + '?' + apiKey;
+			var params = '{ "' + "$set" + '": {"' + 'name' + '": "' + company.name + '"}}';
+			xhr.open("PUT", url, true);
+			xhr.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+			xhr.send(params);
+			xhr.onreadystatechange = function() {
+    			if(xhr.readyState == 4 && xhr.status == 200) {
+    				text = text2[0] + ' ' + text2[1] + ' ' + text2[2] + ' ' + 
+					company.name + ' ' + text2[4] + ' ' + text2[5] + ' ' + company.cash + '|' + text1[1];
+					sender.parentNode.innerHTML = text;
+    			};			
+			};
+		};
+
+		function deleteMe(sender) {
+			var url = apiUrl + '?' + apiKey;
+			xhr.open("GET", url, true);
+			xhr.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+			xhr.send();
+			xhr.onreadystatechange = function() {
+    		if(xhr.readyState == 4 && xhr.status == 200) {
+				responseJSONS = JSON.parse(xhr.responseText);
+				var to_del_arr = [];
+				var to_del_arr_oid = [];
+				var a = (sender.parentNode.parentNode.children[0]).getElementsByTagName('li');         
+				to_del_arr.push(sender.parentNode.parentNode.firstChild.id);
+				for (var i=0; i<(to_del_arr.length + a.length); i++) {
+					if (i<a.length){                                                                   
+					to_del_arr.push(a[i].firstChild.id)
+				};
+					for (var j=0; j<responseJSONS.length; j++) {
+						if (to_del_arr[i] == responseJSONS[j].id)
+						to_del_arr_oid[i] = responseJSONS[j]._id.$oid;
+					};
+				};				
+				let results = [];
+				let chain = Promise.resolve();
+    				[...to_del_arr_oid].reduce( (prev, current) => {
+    				  return prev.then( () => {
+    				    return httpDelete(current).then(results.push.bind(results));
+    				  });
+    				}, Promise.resolve() ).then( () => sender.parentNode.parentNode.remove(document.getElementById(sender.parentNode.getAttribute('id')).getAttribute('id')), to_del_arr = [], to_del_arr_oid = []);
+    					console.log(results);
+				};
+			};
+		};
+
+		function newRoot() {
+			var rootStore = {};
+			url = apiUrl + '/' + rootStoreOid + '?' + apiKey;
+			xhr.open("GET", url, true);
+			xhr.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+			xhr.send();
+			xhr.onreadystatechange = function() {
+    		if(xhr.readyState == 4 && xhr.status == 200) {
+    		rootStore = JSON.parse(xhr.responseText);
+			countOfRoots = rootStore.Roots.length;
+			var newTr = document.createElement("li");
+			newTr.id = 'id="root-'+ parseInt(countOfRoots + 100000000) +'"'; 
+			newTr.innerHTML = 'id: ' + countOfRoots +
+								' ' + 'company: Root_Corp' + countOfRoots + ' , cash: 100' + '| ' +
+								'<button onclick = "create(this)">Add</button>' +
+								'<button onclick = "edit(this)">Edit</button>' +
+								'<button onclick = "deleteMe(this)">Del</button>';
+								var params = '{ "' + "$push" + '": {"' + 'Roots' + 
+								'": { root_id: "' + parseInt(countOfRoots + 100000000) + '"}}}';
+					xhr.open("PUT", url, true);
+					xhr.setRequestHeader("Content-Type", "application/json;charset=utf-8");
+					xhr.send(params);
+					xhr.onreadystatechange = function() {
+    				if(xhr.readyState == 4 && xhr.status == 200)
+    					document.getElementById('root').appendChild(newTr);
+					};
+				};
+			};
+		};
+		
+	</script>
+		<span>Name:</span>
+		<input type="text" id="name" value="oops">
+		<span>Cash:</span>
+		<input type="text" id="cash" value="123">
+		<!-- <button style="float: right;" onclick = "newRoot(this)">Add new root</button> -->
+		<ul id="root">
+			<li id="0">
+				id: 0 company: Apple , cash: 100| 
+				<button onclick = "create(this)">Add</button>
+				<button onclick = "edit(this)">Edit</button>
+				<button onclick = "deleteMe(this)">Del</button>
+			</li>
+		</ul>
+</body>
+</html>
+
+
